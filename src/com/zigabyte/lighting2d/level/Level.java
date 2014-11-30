@@ -2,6 +2,7 @@
 package com.zigabyte.lighting2d.level;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -9,13 +10,12 @@ import java.util.Random;
 
 import com.zigabyte.lighting2d.Main;
 import com.zigabyte.lighting2d.entity.Entity;
-import com.zigabyte.lighting2d.entity.Player;
 import com.zigabyte.lighting2d.entity.Mob;
+import com.zigabyte.lighting2d.entity.Player;
 import com.zigabyte.lighting2d.entity.Skeleton;
 import com.zigabyte.lighting2d.entity.Wall;
 import com.zigabyte.lighting2d.entity.Zombie;
 import com.zigabyte.lighting2d.input.ImageLoader;
-import com.zigabyte.lighting2d.input.Input;
 import com.zigabyte.lighting2d.math.Line;
 import com.zigabyte.lighting2d.math.Vector2f;
 
@@ -27,23 +27,27 @@ public class Level {
 	// For any randomness needed
 	public static final Random random = new Random();
 
+	// The maze size
+	public int width;
+	public int height;
+
 	// An array of all entities
 	public ArrayList<Entity> entities = new ArrayList<Entity>();
 	public Player player;
 
+	public Rectangle goalArea;
+	public Rectangle spawnArea;
+
+	public boolean won = false;
+	public boolean lost = false;
+	public int lostTimer = 0;
+
 	public Level() {
 		level = this;
 
-		LevelGenerator.createWalls(ImageLoader.loadImage("/maze.png"), this);
+		LevelGenerator.createWalls(ImageLoader.loadImage("/maze3.png"), this);
 
-		/*entities.add(new Wall(new Vector2f(300, 300), new Vector2f(50, 100)));
-		entities.add(new Wall(new Vector2f(500, 600), new Vector2f(70, 70)));
-		entities.add(new Wall(new Vector2f(400, 100), new Vector2f(80, 40)));
-		entities.add(new Wall(new Vector2f(800, 100), new Vector2f(80, 40)));
-		*/
-
-		player = new Player(new Vector2f(300, 150));
-		entities.add(player);
+		respawnPlayer();
 	}
 
 	public void addEntity(Entity e) {
@@ -54,7 +58,6 @@ public class Level {
 		entities.remove(e);
 	}
 
-
 	public void update() {
 		// Update all the game objects
 		for (int i = 0; i < entities.size(); i++) {
@@ -62,23 +65,35 @@ public class Level {
 		}
 
 		if (random.nextInt(180) == 0) {
-			Zombie spawn = new Zombie(new Vector2f(random.nextInt(800), random.nextInt(600)));
+			Zombie spawn = new Zombie(new Vector2f(random.nextInt(width), random.nextInt(height)));
 			if (collides(spawn) == null)
 				entities.add(spawn);
-		}/* else if (random.nextInt(180) == 0) {
-			Skeleton spawn = new Skeleton(new Vector2f(random.nextInt(800), random.nextInt(600)));
+		} else if (random.nextInt(180) == 0) {
+			Skeleton spawn = new Skeleton(new Vector2f(random.nextInt(width), random.nextInt(height)));
 			if (collides(spawn) == null)
 				entities.add(spawn);
-			}
-			*/
-		if (player.getHP() <= 0)
+		}
+
+		lostTimer--;
+		if (player.getHP() <= 0) {
+			lost = true;
+			lostTimer = 120;
 			respawnPlayer();
+		}
+
+		checkVictory();
+	}
+
+	private void checkVictory() {
+		Rectangle p = new Rectangle((int) player.pos.x, (int) player.pos.y, (int) player.size.x, (int) player.size.y);
+		if (p.intersects(goalArea))
+			won = true;
 	}
 
 	private void respawnPlayer() {
 		clearAllMobs();
 
-		player = new Player(new Vector2f(300, 150));
+		player = new Player(new Vector2f(spawnArea.x + spawnArea.width / 2 - 10, spawnArea.y + spawnArea.height / 2 - 10));
 		entities.add(player);
 	}
 
@@ -184,6 +199,20 @@ public class Level {
 
 		// Draw lines to all the boxes' corners and draw shadows
 		renderShadows(g);
+
+		if (won) {
+			g.setFont(new Font("Tahoma", 1, 150));
+			// 6F5846,A95A52,E35B5D,F18052,FFA446
+			g.setColor(new Color(0xA95A52));
+			g.drawString("Victory!", goalArea.x - 230, goalArea.y + 200);
+		}
+
+		if (lostTimer > 0) {
+			g.setFont(new Font("Tahoma", 1, 150));
+			// 6F5846,A95A52,E35B5D,F18052,FFA446
+			g.setColor(new Color(0xA95A52));
+			g.drawString("Defeat!", spawnArea.x - 240, spawnArea.y - 100);
+		}
 	}
 
 	public Entity collides(Entity e, Vector2f move) {

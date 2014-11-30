@@ -29,6 +29,7 @@ public class Wall extends Entity {
 		g.setColor(color);
 
 		g.fillRect((int) pos.x, (int) pos.y, (int) size.x, (int) size.y);
+		
 	}
 
 	/*
