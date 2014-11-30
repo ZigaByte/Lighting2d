@@ -23,9 +23,8 @@ public abstract class Entity {
 	public abstract void render(Graphics2D g);
 
 	public boolean getCollidable(Entity e) {
-		if (e instanceof Projectile)
-			return false;
 		return collidable;
 	}
+
 
 }

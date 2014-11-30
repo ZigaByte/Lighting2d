@@ -14,10 +14,15 @@ public class Projectile extends Entity {
 	protected float speed = 1;
 
 	protected int lifeTime;
+	protected float damage = 1;
+
+	protected Entity owner;
 
 
-	public Projectile(Vector2f pos, Vector2f direction) {
+	public Projectile(Vector2f pos, Vector2f direction, Entity owner) {
 		super(pos, new Vector2f(5, 5));
+
+		this.owner = owner;
 
 		lifeTime = 120;
 
@@ -31,22 +36,32 @@ public class Projectile extends Entity {
 		if (lifeTime <= 0)
 			Level.level.removeEntity(this);
 
-		if (Level.level.collides(this))
-			Level.level.removeEntity(this);
+		Entity collides = Level.level.collides(this);
+		if (collides != null) {
+
+			if (collides != owner && collides instanceof Mob) {
+				Level.level.removeEntity(this);
+				((Mob) collides).hit(this);
+			}
+		}
 
 		pos = pos.add(vel);
 	}
 
 	@Override
 	public void render(Graphics2D g) {
-		g.setColor(Color.black);
+		g.setColor(Color.yellow);
 		g.drawRect((int) pos.x, (int) pos.y, (int) size.x, (int) size.y);
 	}
 
 	@Override
 	public boolean getCollidable(Entity e) {
 		if (e instanceof Player)
-			return true;
+			return false;
 		return false;
+	}
+
+	public float getDamage() {
+		return damage;
 	}
 }

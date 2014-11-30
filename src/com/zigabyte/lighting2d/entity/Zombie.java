@@ -22,12 +22,28 @@ public class Zombie extends Mob {
 		//vel = vel.add(relativePosition.div(relativePosition.length()));
 	}
 
+
+	private void hitTarget() {
+		if (Level.random.nextInt(60) == 0) {
+			
+			Player target = Level.level.player;
+			Vector2f relativePosition = (target.pos.add(target.size.div(2))).sub(pos.add(size.div(2)));
+			
+			if (relativePosition.length() < 25) {// If the target is close enough, hit it
+				target.changeHP(-1);
+			}
+		}
+	}
+
 	@Override
 	public void update() {
 		moveToTarget();
 
+		hitTarget();
+
 		move(vel);
 	}
+
 
 	@Override
 	public void render(Graphics2D g) {

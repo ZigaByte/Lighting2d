@@ -22,6 +22,8 @@ public class Skeleton extends Mob {
 		vel = relativePosition.normal();
 
 		if (relativePosition.length() < 100)
+			vel = vel.mul(-1);
+		else if (relativePosition.length() < 150)
 			vel = vel.mul(0);
 
 		//vel = vel.add(relativePosition.div(relativePosition.length()));
@@ -33,7 +35,7 @@ public class Skeleton extends Mob {
 
 		Vector2f relativePosition = target.pos.sub(pos);
 
-		Level.level.addEntity(new Projectile(this.pos, relativePosition.normal()));
+		Level.level.addEntity(new Projectile(this.pos, relativePosition.normal(), this));
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class Skeleton extends Mob {
 
 	@Override
 	public void render(Graphics2D g) {
-		g.setColor(Color.gray);
+		g.setColor(Color.darkGray);
 		super.render(g);
 	}
 

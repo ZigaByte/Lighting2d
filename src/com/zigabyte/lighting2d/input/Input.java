@@ -8,6 +8,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import com.zigabyte.lighting2d.Main;
+import com.zigabyte.lighting2d.level.Level;
+import com.zigabyte.lighting2d.math.Vector2f;
+
 public class Input implements KeyListener, MouseMotionListener, MouseListener {
 
 	public static int mouseX;
@@ -47,7 +51,7 @@ public class Input implements KeyListener, MouseMotionListener, MouseListener {
 	public void mouseReleased(MouseEvent e) {
 		mouseX = e.getX();
 		mouseY = e.getY();
-		button = e.getButton();
+		button = 0;
 	}
 
 	/// unused below
@@ -90,14 +94,20 @@ public class Input implements KeyListener, MouseMotionListener, MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
+	}
 
+	public static Vector2f getMousePosition() {
+		return new Vector2f(mouseX, mouseY);
+	}
+
+	public static Vector2f getMousePositionInWorldCoordinates() {
+		return new Vector2f(mouseX, mouseY).add(Level.level.player.pos).sub(Main.width / 2, Main.height / 2);
 	}
 
 

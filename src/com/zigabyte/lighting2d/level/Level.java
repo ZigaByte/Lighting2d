@@ -10,9 +10,12 @@ import java.util.Random;
 import com.zigabyte.lighting2d.Main;
 import com.zigabyte.lighting2d.entity.Entity;
 import com.zigabyte.lighting2d.entity.Player;
+import com.zigabyte.lighting2d.entity.Mob;
 import com.zigabyte.lighting2d.entity.Skeleton;
 import com.zigabyte.lighting2d.entity.Wall;
 import com.zigabyte.lighting2d.entity.Zombie;
+import com.zigabyte.lighting2d.input.ImageLoader;
+import com.zigabyte.lighting2d.input.Input;
 import com.zigabyte.lighting2d.math.Line;
 import com.zigabyte.lighting2d.math.Vector2f;
 
@@ -31,11 +34,15 @@ public class Level {
 	public Level() {
 		level = this;
 
-		entities.add(new Wall(new Vector2f(300, 300), new Vector2f(50, 100)));
-		entities.add(new Wall(new Vector2f(500, 400), new Vector2f(70, 70)));
-		entities.add(new Wall(new Vector2f(400, 100), new Vector2f(80, 40)));
+		LevelGenerator.createWalls(ImageLoader.loadImage("/maze.png"), this);
 
-		player = new Player(new Vector2f(150, 150));
+		/*entities.add(new Wall(new Vector2f(300, 300), new Vector2f(50, 100)));
+		entities.add(new Wall(new Vector2f(500, 600), new Vector2f(70, 70)));
+		entities.add(new Wall(new Vector2f(400, 100), new Vector2f(80, 40)));
+		entities.add(new Wall(new Vector2f(800, 100), new Vector2f(80, 40)));
+		*/
+
+		player = new Player(new Vector2f(300, 150));
 		entities.add(player);
 	}
 
@@ -54,21 +61,43 @@ public class Level {
 			entities.get(i).update();
 		}
 
-		if (random.nextInt(120) == 0) {
-			entities.add(new Zombie(new Vector2f(random.nextInt(800), random.nextInt(600))));
-		} else if (random.nextInt(120) == 0) {
-			entities.add(new Skeleton(new Vector2f(random.nextInt(800), random.nextInt(600))));
+		if (random.nextInt(180) == 0) {
+			Zombie spawn = new Zombie(new Vector2f(random.nextInt(800), random.nextInt(600)));
+			if (collides(spawn) == null)
+				entities.add(spawn);
+		}/* else if (random.nextInt(180) == 0) {
+			Skeleton spawn = new Skeleton(new Vector2f(random.nextInt(800), random.nextInt(600)));
+			if (collides(spawn) == null)
+				entities.add(spawn);
+			}
+			*/
+		if (player.getHP() <= 0)
+			respawnPlayer();
+	}
 
+	private void respawnPlayer() {
+		clearAllMobs();
+
+		player = new Player(new Vector2f(300, 150));
+		entities.add(player);
+	}
+
+	private void clearAllMobs() {
+		for (int i = 0; i < entities.size();) {
+			if (entities.get(i) instanceof Mob)
+				entities.remove(i);
+			else
+				i++;
 		}
 	}
 
-	public void renderEntities(Graphics2D g) {
+	private void renderEntities(Graphics2D g) {
 		for (int i = 0; i < entities.size(); i++) {
 			entities.get(i).render(g);
 		}
 	}
 
-	public void renderShadows(Graphics2D g) {
+	private void renderShadows(Graphics2D g) {
 		//Vector2f mouse = new Vector2f(Input.mouseX, Input.mouseY);
 		Vector2f mouse = player.pos.add(player.size.mul(0.5f, 0.5f));
 		for (Entity entity : entities) {
@@ -94,45 +123,50 @@ public class Level {
 					Line line2 = new Line(((Wall) e).getPoint(2), mouse);
 					Line line3 = new Line(((Wall) e).getPoint(3), mouse);
 
+					int maxX = (int) (Main.width + player.pos.x);
+					int minX = (int) (0 - player.pos.x - Main.width / 2);
+					int maxY = (int) (Main.height + player.pos.y);
+					int minY = (int) (0 - player.pos.y - Main.height / 2);
+
 					int nPoints = 6;
 					Color color = new Color(0xFFA446);
 					g.setColor(color);
 					if (mouse.y < e.pos.y) { // position 1, 2, 3
 						if (mouse.x < e.pos.x) {// position 1
-							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(3).x, (int) e.getPoint(1).x, 800, 800, 800 };
-							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) e.getPoint(1).y, (int) line1.getY(800), (int) line3.getY(800), (int) line2.getY(800) };
+							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(3).x, (int) e.getPoint(1).x, maxX, maxX, maxX };
+							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) e.getPoint(1).y, (int) line1.getY(maxX), (int) line3.getY(maxX), (int) line2.getY(maxX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						} else if (mouse.x < e.pos.x + e.size.x) {// position 2
-							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, (int) e.getPoint(1).x, (int) line1.getX(800), (int) line0.getX(800) };
-							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) e.getPoint(1).y, 800, 800 };
+							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, (int) e.getPoint(1).x, (int) line1.getX(maxY), (int) line0.getX(maxY) };
+							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) e.getPoint(1).y, maxY, maxY };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						} else {// position 3
-							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, 0, 0, 0 };
-							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) line3.getY(0), (int) line2.getY(0), (int) line0.getY(0) };
+							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, minX, minX, minX };
+							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) line3.getY(minX), (int) line2.getY(minX), (int) line0.getY(minX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						}
 					} else if (mouse.y < e.pos.y + e.size.y) {// position 4,5
 						if (mouse.x < e.pos.x) {// position 4
-							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, (int) e.getPoint(2).x, 800, 800 };
-							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, (int) e.getPoint(2).y, (int) line2.getY(800), (int) line0.getY(800) };
+							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, (int) e.getPoint(2).x, maxX, maxX };
+							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, (int) e.getPoint(2).y, (int) line2.getY(maxX), (int) line0.getY(maxX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						} else {// position 5
-							int[] xPoints = { (int) e.getPoint(1).x, (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, 0, 0 };
-							int[] yPoints = { (int) e.getPoint(1).y, (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) line3.getY(0), (int) line1.getY(0) };
+							int[] xPoints = { (int) e.getPoint(1).x, (int) e.getPoint(0).x, (int) e.getPoint(2).x, (int) e.getPoint(3).x, minX, minX };
+							int[] yPoints = { (int) e.getPoint(1).y, (int) e.getPoint(0).y, (int) e.getPoint(2).y, (int) e.getPoint(3).y, (int) line3.getY(minX), (int) line1.getY(minX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						}
 					} else {// position 6, 7, 8
 						if (mouse.x < e.pos.x) {// position 6
-							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, 800, 800, 800 };
-							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, (int) line3.getY(800), (int) line1.getY(800), (int) line0.getY(800) };
+							int[] xPoints = { (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, maxX, maxX, maxX };
+							int[] yPoints = { (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, (int) line3.getY(maxX), (int) line1.getY(maxX), (int) line0.getY(maxX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						} else if (mouse.x < e.pos.x + e.size.x) {// position 7
-							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, (int) line3.getX(0), (int) line2.getX(0) };
-							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, 0, 0 };
+							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(0).x, (int) e.getPoint(1).x, (int) e.getPoint(3).x, (int) line3.getX(minY), (int) line2.getX(minY) };
+							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) e.getPoint(3).y, minY, minY };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						} else {// position 8
-							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(0).x, (int) e.getPoint(1).x, 0, 0, 0 };
-							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) line1.getY(0), (int) line0.getY(0), (int) line2.getY(0) };
+							int[] xPoints = { (int) e.getPoint(2).x, (int) e.getPoint(0).x, (int) e.getPoint(1).x, minX, minX, minX };
+							int[] yPoints = { (int) e.getPoint(2).y, (int) e.getPoint(0).y, (int) e.getPoint(1).y, (int) line1.getY(minX), (int) line0.getY(minX), (int) line2.getY(minX) };
 							g.fillPolygon(xPoints, yPoints, nPoints);
 						}
 					}
@@ -143,7 +177,8 @@ public class Level {
 	}
 
 	public void render(Graphics2D g) {
-		g.translate(-player.pos.x + Main.width / 2, -player.pos.y + Main.height / 2);
+		g.translate(-player.pos.x + Main.width / 2 - player.size.x / 2, -player.pos.y + Main.height / 2 - player.size.y / 2); // Center the screen on the player
+
 		// Render all the entities
 		renderEntities(g);
 
@@ -151,7 +186,7 @@ public class Level {
 		renderShadows(g);
 	}
 
-	public boolean collides(Entity e, Vector2f move) {
+	public Entity collides(Entity e, Vector2f move) {
 		Rectangle r1 = new Rectangle((int) (e.pos.x + move.x), (int) (e.pos.y + move.y), (int) e.size.x, (int) e.size.y);
 		for (Entity current : entities) {
 
@@ -162,15 +197,15 @@ public class Level {
 			if (e != current) {
 				Rectangle r2 = new Rectangle((int) current.pos.x, (int) current.pos.y, (int) current.size.x, (int) current.size.y);
 				if (r1.intersects(r2)) {
-					System.out.println(current);
-					return true;
+					//System.out.println(current);
+					return current;
 				}
 			}
 		}
-		return false;
+		return null;
 	}
 
-	public boolean collides(Entity e) {
+	public Entity collides(Entity e) {
 		return collides(e, new Vector2f());
 	}
 }
