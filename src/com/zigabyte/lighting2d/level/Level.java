@@ -35,19 +35,30 @@ public class Level {
 	public ArrayList<Entity> entities = new ArrayList<Entity>();
 	public Player player;
 
-	public Rectangle goalArea;
-	public Rectangle spawnArea;
+	protected Rectangle goalArea;
+	protected Rectangle spawnArea;
 
-	public boolean won = false;
-	public boolean lost = false;
-	public int lostTimer = 0;
+	protected boolean won = false;
+	protected int wonTimer = 0;
+	protected boolean lost = false;
+	protected int lostTimer = 0;
 
-	public Level() {
+	protected boolean disabledMobsSpawning = false;
+
+	public Level(String path) {
 		level = this;
 
-		//LevelGenerator.createWalls(ImageLoader.loadImage("/maze3.png"), this);
-		LevelGenerator.generateRandomMaze(20, 20, this);
+		if (path != "")
+			LevelGenerator.createWalls(ImageLoader.loadImage(path), this);
 
+		respawnPlayer();
+	}
+
+	public Level(int size) {
+		level = this;
+
+		entities.clear();
+		LevelGenerator.generateRandomMaze(size, size, this);
 		respawnPlayer();
 	}
 
@@ -59,21 +70,28 @@ public class Level {
 		entities.remove(e);
 	}
 
+	protected void randomMobSpawn() {
+		if (disabledMobsSpawning)
+			return;
+		if (random.nextInt(90) == 0) {
+			Zombie spawn = new Zombie(new Vector2f(random.nextInt(width), random.nextInt(height)));
+			if (collides(spawn) == null)
+				entities.add(spawn);
+		} else if (random.nextInt(90) == 0) {
+			Skeleton spawn = new Skeleton(new Vector2f(random.nextInt(width), random.nextInt(height)));
+			if (collides(spawn) == null)
+				entities.add(spawn);
+		}
+
+	}
+
 	public void update() {
 		// Update all the game objects
 		for (int i = 0; i < entities.size(); i++) {
 			entities.get(i).update();
 		}
 
-		if (random.nextInt(180) == 0) {
-			Zombie spawn = new Zombie(new Vector2f(random.nextInt(width), random.nextInt(height)));
-			if (collides(spawn) == null)
-				entities.add(spawn);
-		} else if (random.nextInt(180) == 0) {
-			Skeleton spawn = new Skeleton(new Vector2f(random.nextInt(width), random.nextInt(height)));
-			if (collides(spawn) == null)
-				entities.add(spawn);
-		}
+		randomMobSpawn();
 
 		lostTimer--;
 		if (player.getHP() <= 0) {
@@ -85,20 +103,23 @@ public class Level {
 		checkVictory();
 	}
 
-	private void checkVictory() {
+	protected void checkVictory() {
+		if (isWon())
+			wonTimer++;
+
 		Rectangle p = new Rectangle((int) player.pos.x, (int) player.pos.y, (int) player.size.x, (int) player.size.y);
 		if (p.intersects(goalArea))
 			won = true;
 	}
 
-	private void respawnPlayer() {
+	protected void respawnPlayer() {
 		clearAllMobs();
 
 		player = new Player(new Vector2f(spawnArea.x + spawnArea.width / 2 - 10, spawnArea.y + spawnArea.height / 2 - 10));
 		entities.add(player);
 	}
 
-	private void clearAllMobs() {
+	protected void clearAllMobs() {
 		for (int i = 0; i < entities.size();) {
 			if (entities.get(i) instanceof Mob)
 				entities.remove(i);
@@ -107,13 +128,13 @@ public class Level {
 		}
 	}
 
-	private void renderEntities(Graphics2D g) {
+	protected void renderEntities(Graphics2D g) {
 		for (int i = 0; i < entities.size(); i++) {
 			entities.get(i).render(g);
 		}
 	}
 
-	private void renderShadows(Graphics2D g) {
+	protected void renderShadows(Graphics2D g) {
 		//Vector2f mouse = new Vector2f(Input.mouseX, Input.mouseY);
 		Vector2f mouse = player.pos.add(player.size.mul(0.5f, 0.5f));
 		for (Entity entity : entities) {
@@ -192,8 +213,19 @@ public class Level {
 		}
 	}
 
+	protected void renderText(Graphics2D g) {
+
+	}
+
 	public void render(Graphics2D g) {
 		g.translate(-player.pos.x + Main.width / 2 - player.size.x / 2, -player.pos.y + Main.height / 2 - player.size.y / 2); // Center the screen on the player
+
+		// Render the end area
+		g.setColor(Color.GREEN);
+		g.fillRect(goalArea.x, goalArea.y, goalArea.width, goalArea.height);
+
+		// Render Text on the floor
+		renderText(g);
 
 		// Render all the entities
 		renderEntities(g);
@@ -206,6 +238,8 @@ public class Level {
 			// 6F5846,A95A52,E35B5D,F18052,FFA446
 			g.setColor(new Color(0xA95A52));
 			g.drawString("Victory!", goalArea.x - 230, goalArea.y + 200);
+			g.setFont(new Font("Tahoma", 0, 30));
+			g.drawString("Moving to the next stage ...", goalArea.x - 0, goalArea.y + 270);
 		}
 
 		if (lostTimer > 0) {
@@ -215,6 +249,8 @@ public class Level {
 			g.drawString("Defeat!", spawnArea.x - 240, spawnArea.y - 100);
 		}
 	}
+
+
 
 	public Entity collides(Entity e, Vector2f move) {
 		Rectangle r1 = new Rectangle((int) (e.pos.x + move.x), (int) (e.pos.y + move.y), (int) e.size.x, (int) e.size.y);
@@ -237,5 +273,13 @@ public class Level {
 
 	public Entity collides(Entity e) {
 		return collides(e, new Vector2f());
+	}
+
+	public boolean isWon() {
+		return won;
+	}
+
+	public int getWonTimer() {
+		return wonTimer;
 	}
 }

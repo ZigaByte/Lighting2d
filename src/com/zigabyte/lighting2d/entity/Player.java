@@ -2,6 +2,7 @@
 package com.zigabyte.lighting2d.entity;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 
 import com.zigabyte.lighting2d.input.Input;
@@ -67,6 +68,7 @@ public class Player extends Mob {
 	public void render(Graphics2D g) {
 		g.setColor(Color.white);
 		super.render(g);
+		g.setFont(new Font("Tahoma", 1, 10));
 		g.drawString("" + hp, pos.x + size.x / 4, pos.y + size.x / 4 * 3);
 	}
 

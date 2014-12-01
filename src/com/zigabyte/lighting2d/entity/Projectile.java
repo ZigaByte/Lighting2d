@@ -43,6 +43,9 @@ public class Projectile extends Entity {
 				Level.level.removeEntity(this);
 				((Mob) collides).hit(this);
 			}
+			if (collides instanceof Wall) {
+				Level.level.removeEntity(this);
+			}
 		}
 
 		pos = pos.add(vel);

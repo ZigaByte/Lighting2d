@@ -50,7 +50,7 @@ public class Skeleton extends Mob {
 
 	@Override
 	public void render(Graphics2D g) {
-		g.setColor(Color.darkGray);
+		g.setColor(Color.CYAN);
 		super.render(g);
 	}
 

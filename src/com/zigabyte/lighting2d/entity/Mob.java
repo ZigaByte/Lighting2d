@@ -14,6 +14,8 @@ public class Mob extends Entity {
 
 	protected Vector2f vel;
 
+	protected boolean canMove = true;
+
 	public Mob(Vector2f pos, Vector2f size) {
 		super(pos, size);
 
@@ -22,6 +24,9 @@ public class Mob extends Entity {
 	}
 
 	public void move(Vector2f v) {
+		if (!canMove)
+			return;
+
 		if (v.x != 0 && v.y != 0) {
 			move(v.mul(1, 0));
 			move(v.mul(0, 1));
