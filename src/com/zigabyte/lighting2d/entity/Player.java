@@ -14,6 +14,8 @@ public class Player extends Mob {
 	private int shootSpeed = 30; // lower shootspeed variable means faster shooting
 	private int shootTimer = 0;
 
+	private float moveSpped = 3;
+
 	public Player(Vector2f pos) {
 		super(pos, new Vector2f(20, 20));
 		vel = new Vector2f();
@@ -41,13 +43,13 @@ public class Player extends Mob {
 		super.update();
 
 		if (Input.up)
-			vel = vel.add(0, -1);
+			vel = vel.add(0, -moveSpped);
 		if (Input.down)
-			vel = vel.add(0, +1);
+			vel = vel.add(0, +moveSpped);
 		if (Input.left)
-			vel = vel.add(-1, 0);
+			vel = vel.add(-moveSpped, 0);
 		if (Input.right)
-			vel = vel.add(+1, 0);
+			vel = vel.add(+moveSpped, 0);
 
 		if (Input.space)
 			vel = vel.mul(0);
@@ -56,6 +58,7 @@ public class Player extends Mob {
 			vel = vel.normal().mul(5);
 
 		move(vel);
+		vel = vel.mul(0);
 
 		shoot();
 	}

@@ -66,4 +66,12 @@ public class Vector2f {
 		return new Vector2f(x / other.x, y / other.y);
 	}
 
+	public int getXInt() {
+		return Math.round(x);
+	}
+
+	public int getYInt() {
+		return Math.round(y);
+	}
+
 }

@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 
 import com.zigabyte.lighting2d.entity.Wall;
 import com.zigabyte.lighting2d.math.Vector2f;
+import com.zigabyte.mazegenerator.MazeGenerator;
 
 
 public class LevelGenerator {
@@ -30,5 +31,9 @@ public class LevelGenerator {
 
 			}
 		}
+	}
+
+	public static void generateRandomMaze(int w, int h, Level level) {
+		createWalls(MazeGenerator.generateAMaze(w, h), level);
 	}
 }

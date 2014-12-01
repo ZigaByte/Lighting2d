@@ -45,7 +45,8 @@ public class Level {
 	public Level() {
 		level = this;
 
-		LevelGenerator.createWalls(ImageLoader.loadImage("/maze3.png"), this);
+		//LevelGenerator.createWalls(ImageLoader.loadImage("/maze3.png"), this);
+		LevelGenerator.generateRandomMaze(20, 20, this);
 
 		respawnPlayer();
 	}
